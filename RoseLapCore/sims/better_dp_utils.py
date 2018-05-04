@@ -9,17 +9,18 @@ class nd_structure:
 		self.np = [self.n ** i for i in range(self.p)]
 
 		self.maxi = n**(p - 1) * (n - 1)
-		print self.maxi
 		self.edges = None
-		self.iS = None
 
-		self.arr = np.empty([self.maxi + 1, 1], dtype=object)
+		self.data = {}
 
 	def get_element(self, i):
-		return self.arr[i, 0]
+		return self.data.get(i)
 
 	def set_element(self, i, item):
-		self.arr[i, 0] = item
+		self.data[i] = item
+
+	def exists(self, i):
+		return i in self.data
 
 	def get_parents(self, iS):
 		parents = []
@@ -32,62 +33,16 @@ class nd_structure:
 
 		return parents
 
-	def generate_iS(self):
-		print "time start"
-		t0 = time.time()
+	def get_children(self, iS):
+		children = []
 
-		if self.iS != None:
-			return self.iS
+		for i in range(self.p):
+			if iS[i] < self.n - 1:
+				child = list(iS)
+				child[i] = iS[i] + 1
+				children.append(self.convert_to_index(child))
 
-		iS = []
-		added = self.get_edges()
-
-		colp = self.p
-		coln = self.n
-		np = self.np
-		def col(i):
-			r = []
-			for x in range(colp):
-				r.append(i % coln)
-				i = (i - r[-1]) / coln
-			return r
-
-		def coi(l):
-			i = 0
-			for x in range(colp):
-				i += np[x] * l[x]
-			return i
-
-		def gp(l):
-			parents = []
-			for i in range(colp):
-				if l[i] > 0:
-					parent = list(l)
-					parent[i] = l[i] - 1
-					parents.append((i, coi(parent)))
-			return parents
-
-		print time.time() - t0
-
-		while(len(added) > 0):
-			new = set()
-
-			for i in added:
-				iS.append(i)
-
-				parents = gp(col(i))
-				for p in parents:
-					new.add(p[1])
-
-			added = new
-
-		print time.time() - t0
-
-		self.iS = iS[::-1]
-
-		print time.time() - t0
-
-		return self.iS
+		return children
 
 	def get_edges(self):
 		if self.edges != None:

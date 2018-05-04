@@ -2,14 +2,16 @@ import numpy as np
 import dp_utils as dpu
 np.set_printoptions(threshold=np.inf, linewidth=np.inf, precision=4)
 import math
+from constants import *
 
 class State:
-	def __init__(self, exists=True, t=0., v=0., l=-1, k=-1, i=0):
+	def __init__(self, exists=True, t=0., v=0., l=-1, k=-1, i=0, g=0):
 		self.decision = None
 		self.exists = exists
 		self.parent = None
 		self.t = t
 		self.v = v
+		self.g = g
 		self.l = l
 		self.k = k
 		self.i = i
@@ -17,19 +19,23 @@ class State:
 def invalid_state():
 	return State(exists=False, t=np.inf)
 
-class sim_dp_braking:
+class sim_dp_nd_template:
 	def __init__(self):
 		self.axes = 3
+		self.policies = [None for x in range(self.axes)]
+		
+		self.done = set()
+		self.done.add(0)
 
-		self.D_ACCELERATE = 2
-		self.D_SUSTAIN = 1
-		self.D_BRAKE = 0
-
-		self.policies = [self.accel_policy, self.sustain_policy, self.brake_policy]
+		# self.policies[D_SHIFT_UP] = self.shift_up_policy
+		self.policies[D_ACCELERATE] = self.accel_policy
+		# self.policies[D_SHIFT_DOWN] = self.shift_down_policy
+		self.policies[D_SUSTAIN] = self.sustain_policy
+		self.policies[D_BRAKE] = self.brake_policy
 
 	def accel_policy(self, S):
-		c, Sp = self.compute_RT(S, self.D_ACCELERATE)
-		Sp.decision = self.D_ACCELERATE
+		c, Sp = self.compute_RT(S, D_ACCELERATE)
+		Sp.decision = D_ACCELERATE
 		Sp.parent = S
 
 		return Sp
@@ -40,7 +46,13 @@ class sim_dp_braking:
 	def brake_policy(self, S):
 		return invalid_state()
 
-	def fill_edges(self):
+	def shift_up_policy(self, S):
+		return invalid_state()
+
+	def shift_down_policy(self, S):
+		return invalid_state()
+
+	def fill_axes(self):
 		for i in range(self.axes):
 			policy = self.policies[i]
 			S = self.sg.get_element(0)
@@ -48,45 +60,16 @@ class sim_dp_braking:
 
 			for j in range(1, self.n):
 				index[i] = j
-				iS = self.sg.convert_index(index)
+				iS = self.sg.convert_to_index(index)
 				S = policy(S)
 
 				self.sg.set_element(iS, S)
-
-	def generate_iS(self, axes):
-		iS = []
-		for i in range(3):
-			for j in range(1, self.n):
-				for k in range(1, self.n - j):
-					if i == 0:
-						iS.append(tuple([0, j, k]))
-					elif i == 2:
-						iS.append(tuple([j, k, 0]))
-					else:
-						iS.append(tuple([j, 0, k]))
-
-		iS2 = set()
-
-		for i in range(1, self.n):
-			for j in range(1, self.n - i):
-				for k in range(1, self.n - i - j):
-					iS2.add(tuple([i, j, k]))
-					iS2.add(tuple([i, k, j]))
-					iS2.add(tuple([j, i, k]))
-					iS2.add(tuple([j, k, i]))
-					iS2.add(tuple([k, i, j]))
-					iS2.add(tuple([k, j, i]))
-
-		iS = iS + sorted(iS2)
-
-		def internal_gen():
-			for i in iS:
-				yield i
-
-		return internal_gen
+				self.done.add(iS)
 
 	def compute_RT(self, S, d):
 		if not S.exists:
+			return (np.inf, invalid_state())
+		elif S.t > self.max_time:
 			return (np.inf, invalid_state())
 
 		Sp = State()
@@ -98,7 +81,9 @@ class sim_dp_braking:
 		Sp.l = self.segments[Sp.i - 1].length
 		Sp.k = self.segments[Sp.i - 1].curvature
 
-		a_long = self.compute_a_long(S, d)
+		a_long, g = self.compute_a_long(S, d)
+		Sp.g = g
+
 		if a_long == None:
 			return (np.inf, invalid_state())
 
@@ -118,37 +103,46 @@ class sim_dp_braking:
 		f_tire_lim = (self.vp.mu * N)
 		f_tire_lat = (S.k * self.vp.mass * S.v**2)
 		if f_tire_lat > f_tire_lim:
-			return None
+			return (None, S.g)
 		f_tire_rem = np.sqrt(f_tire_lim**2 - f_tire_lat**2)
 
-		eng, rpm = self.vp.eng_force(S.v, 0)
-		engine_force = eng if d == self.D_ACCELERATE else 0
+		if d == D_SHIFT_UP:
+			S.g = np.min([S.g + 1, len(self.vp.gears) - 1])
+		if d == D_SHIFT_DOWN:
+			S.g = np.max([S.g - 1, 0])
 
-		f_tire_long = np.min([engine_force, f_tire_rem]) if d != self.D_BRAKE else -f_tire_rem
+		eng, rpm = self.vp.eng_force(S.v, S.g)
+		engine_force = eng if d == D_ACCELERATE else 0
+
+		f_tire_long = np.min([engine_force, f_tire_rem]) if d != D_BRAKE else -f_tire_rem
 		f_drag = self.vp.alpha_drag() * S.v**2
 		f_long = f_tire_long - f_drag
 
-		return float(f_long) / self.vp.mass
+		return (float(f_long) / self.vp.mass, S.g)
 
 	def test_parents(self, index):
-		parents = self.sg.get_parents(index)
+		if index in self.done:
+			return
+
+		parents = self.sg.get_parents(self.sg.convert_to_list(index))
 		min_c = np.inf
 		min_S = invalid_state()
 
-		for i, iP in enumerate(parents):
-			if iP >= 0:
-				p = self.sg.get_element(iP)
+		for tP in parents:
+			i, iP = tP
 
-				c, S = self.compute_RT(p, i)
+			p = self.sg.get_element(iP)
 
-				if c < min_c:
-					min_c = c
-					min_S = S
-					min_S.decision = i
-					min_S.parent = p
+			c, S = self.compute_RT(p, i)
 
-		i = self.sg.convert_index(index)
-		self.sg.set_element(i, min_S)
+			if c < min_c:
+				min_c = c
+				min_S = S
+				min_S.decision = i
+				min_S.parent = p
+
+		self.sg.set_element(index, min_S)
+		self.done.add(index)
 
 	def find_optimum(self):
 		min_t = np.inf
@@ -162,38 +156,59 @@ class sim_dp_braking:
 				min_S = edge
 
 		path = []
+		output = np.zeros([self.n - 1, O_MATRIX_COLS])
+		i = self.n - 2
+
 		while min_S.decision != None:
-			out = []
-			out.append(min_S.i)
-			out.append(min_S.decision)
-			out.append(min_S.t)
-			out.append(min_S.v)
-			print min_S.i, ":", out
-			path.append(out)
+			path.append(min_S.decision)
+
+			output[i, :] = np.array([
+				min_S.t,
+				min_S.i,
+				min_S.v,
+				0,
+				0,
+				0,
+				min_S.decision,
+				min_S.g,
+				0,
+				0,
+				0,
+				0,
+				min_S.k,
+				0,
+				0
+			])
+
+			i = i - 1
+
 			min_S = min_S.parent
 
-		return path[::-1]
+		return (path[::-1], output)
 
 	def solve(self, vehicle, segments):
 		self.vp = vehicle
 		self.segments = segments
 		self.n = len(segments) + 1
 
+		self.max_time = ((self.n * segments[4].length / 5280) / 20) * 60 * 60
+		print self.max_time
+
 		self.sg = dpu.nd_structure(self.n, self.axes)
 		self.sg.set_element(0, State(l=self.segments[0].length, k=self.segments[0].curvature))
 
-		self.fill_edges()
+		self.fill_axes()
 
-		iS = self.sg.generate_iS(self.axes)	
+		iS = self.sg.generate_iS()	
 
-		for index in iS:
+		for i, index in enumerate(iS):
+			if i % 10000 == 0:
+				print i
 			self.test_parents(index)
 
-		path = self.find_optimum()
+		path, output = self.find_optimum()
 
-		# add the visualization tool
-
-		exit()
+		return output
 
 	def steady_solve(self, vehicle, segments):
 		return self.solve(vehicle, segments)

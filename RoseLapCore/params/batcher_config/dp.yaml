@@ -1,10 +1,11 @@
-##### BATCH CONFIGURATION EXAMPLE ####
-
 ##### INPUT SPECIFICATION #####
 vehicle: example_vehicle.yaml
-model: dp_braking
+model: dp_nd
 tracks:
   - dxf: test_ax.DXF
+    segment_distance: 0.2
+    steady_state: false
+  - dxf: test_track.DXF
     segment_distance: 0.2
     steady_state: false
 
@@ -14,8 +15,8 @@ tests:
     - target: mass
       operation: replace # only replace and product
       test_vals:
-        - 500
+        - 550
 
 ##### OUTPUT SPECIFICATION #####
 filename: dp_circle_results
-data_percentage: 0 # 0 -> just plot points
+data_percentage: 100 # 0 -> just plot points
