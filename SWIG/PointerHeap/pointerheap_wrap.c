@@ -3053,7 +3053,8 @@ extern void Destroy();
 extern HeapNode*  MakeNode(int id, int dependents, int step, void* parent, int decisionID, double time, double velocity, int gear, int delta, double timeToShift);
 extern HeapNode* MakeInitNode();
 extern void KillNode(HeapNode* node);
-extern void Insert(HeapNode* node, int level, double score);
+extern void FreeNode(HeapNode* node);
+extern int Insert(HeapNode* node, int level, double score);
 extern HeapNode* DeleteMin(int level);
 
 extern int GetID(HeapNode* node);
@@ -4228,6 +4229,27 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_FreeNode(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  PyObject * obj0 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"O:FreeNode",&obj0)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "FreeNode" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  FreeNode(arg1);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_Insert(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
@@ -4242,6 +4264,7 @@ SWIGINTERN PyObject *_wrap_Insert(PyObject *SWIGUNUSEDPARM(self), PyObject *args
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   PyObject * obj2 = 0 ;
+  int result;
   
   if (!PyArg_ParseTuple(args,(char *)"OOO:Insert",&obj0,&obj1,&obj2)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
@@ -4259,8 +4282,8 @@ SWIGINTERN PyObject *_wrap_Insert(PyObject *SWIGUNUSEDPARM(self), PyObject *args
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "Insert" "', argument " "3"" of type '" "double""'");
   } 
   arg3 = (double)(val3);
-  Insert(arg1,arg2,arg3);
-  resultobj = SWIG_Py_Void();
+  result = (int)Insert(arg1,arg2,arg3);
+  resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
   return NULL;
@@ -4657,6 +4680,7 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"MakeNode", _wrap_MakeNode, METH_VARARGS, NULL},
 	 { (char *)"MakeInitNode", _wrap_MakeInitNode, METH_VARARGS, NULL},
 	 { (char *)"KillNode", _wrap_KillNode, METH_VARARGS, NULL},
+	 { (char *)"FreeNode", _wrap_FreeNode, METH_VARARGS, NULL},
 	 { (char *)"Insert", _wrap_Insert, METH_VARARGS, NULL},
 	 { (char *)"DeleteMin", _wrap_DeleteMin, METH_VARARGS, NULL},
 	 { (char *)"GetID", _wrap_GetID, METH_VARARGS, NULL},

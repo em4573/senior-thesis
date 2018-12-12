@@ -200,6 +200,10 @@ def KillNode(node):
     return _pointerheap.KillNode(node)
 KillNode = _pointerheap.KillNode
 
+def FreeNode(node):
+    return _pointerheap.FreeNode(node)
+FreeNode = _pointerheap.FreeNode
+
 def Insert(node, level, score):
     return _pointerheap.Insert(node, level, score)
 Insert = _pointerheap.Insert

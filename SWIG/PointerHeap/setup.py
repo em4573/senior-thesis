@@ -1,5 +1,6 @@
 # $ swig -python example.i
-# $ python setup.py build_ext --inplace
+# $ python setup.py build_ext
+# $ sudo python setup.py install
 
 from distutils.core import setup, Extension
 

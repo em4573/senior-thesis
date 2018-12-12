@@ -74,7 +74,7 @@ for i, t in enumerate(tracks[1][0]):
 		s = 0
 		l = 0
 
-tracks = [(circle, False, "track name")]
+tracks = [(track, False, "track name")]
 
 print(len(tracks[0][0]))
 draw_track(tracks[0][0])
