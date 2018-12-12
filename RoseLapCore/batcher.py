@@ -1,7 +1,5 @@
 import numpy as np
 import itertools
-import multiprocessing
-from multiprocessing import Pool as ThreadPool
 import time
 import plotter
 import copy as shallow
@@ -92,12 +90,12 @@ def batch_run(targets, permutations, contents, vehicle, tracks, model, include_o
 	if type(permutations[0]) != list:
 		permutations = [[p] for p in permutations]
 		
-	print "threading...", n_threads
+	# print("threading...", n_threads)
 
-	pool = ThreadPool(n_threads)
-	pool.map(stretch, [i for i in range(n_threads)])
+	# pool = ThreadPool(n_threads)
+	# pool.map(stretch, [i for i in range(n_threads)])
 
-	print "running..."
+	# print("running...")
 
 	for track in tracks:
 		segments, steady_state, name = track
@@ -114,7 +112,7 @@ def batch_run(targets, permutations, contents, vehicle, tracks, model, include_o
 		# thread_results = pool.map(run_permutation, thread_data)
 		thread_results = [run_permutation(d) for d in thread_data]
 
-		print "\ttrack completed in:", time.time() - t0, "seconds"
+		print("\ttrack completed in:", time.time() - t0, "seconds")
 
 		times = []
 		outputs = []

@@ -18,5 +18,5 @@ tests:
         - 550
 
 ##### OUTPUT SPECIFICATION #####
-filename: dp_circle_results
-data_percentage: 100 # 0 -> just plot points
+filename: dp_nd_results
+data_percentage: 0 # 0 -> just plot points

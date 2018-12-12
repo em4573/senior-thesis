@@ -43,7 +43,7 @@ def draw_track(segs):
     	y.append(y[-1] + dy)
 
     plt.scatter(x, y)
-    plt.show()
+    plt.draw()
 
 circle = [makeCurvedSegment(15) for x in range(15)]
 tight = [makeCurvedSegment(3) for x in range(15)]
@@ -74,11 +74,11 @@ for i, t in enumerate(tracks[1][0]):
 		s = 0
 		l = 0
 
-tracks = [(line, False, "track name")]
+tracks = [(circle, False, "track name")]
 
 print(len(tracks[0][0]))
 draw_track(tracks[0][0])
 
 results = batcher.batch(tests, vehicle, tracks, model, out[1] != 0)
 
-print results
+print(results)

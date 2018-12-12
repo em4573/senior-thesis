@@ -98,7 +98,7 @@ class sim_dp_circle:
 		f_drag = self.vp.alpha_drag() * S.v**2
 		f_long = f_tire_long - f_drag
 		if f_long < 0:
-			print "aha!"
+			print("aha!")
 
 		return float(f_long) / self.vp.mass
 
@@ -118,7 +118,7 @@ class sim_dp_circle:
 		d_path = []
 
 		while Sc.decision != None:
-			print str(Sc.i) + "\t" + str(Sc.v)
+			print(str(Sc.i) + "\t" + str(Sc.v))
 			d_path.append(Sc.decision)
 			Sc = Sc.parent
 
@@ -134,8 +134,8 @@ class sim_dp_circle:
 
 		self.populate_mats()
 		path = self.find_boundary()
-		print path
-		print self.dmat
+		print(path)
+		print(self.dmat)
 
 		exit()
 
