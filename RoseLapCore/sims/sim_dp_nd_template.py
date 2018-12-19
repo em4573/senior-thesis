@@ -1,6 +1,6 @@
 import numpy as np
 import better_dp_utils as dpu
-import math, time, pdb
+import math, time, pdb, copy
 from constants import *
 from sim_pointmass import *
 import pointerheap as heap
@@ -16,7 +16,7 @@ class sim_dp_nd_template:
 	def __init__(self):	
 		self.maxint = heap.cvar.maxint
 
-		self.axes = 3
+		self.axes = 2
 		self.policies = [None for x in range(self.axes)]
 		self.pre_pop = []
 		
@@ -26,7 +26,7 @@ class sim_dp_nd_template:
 		#self.policies[D_SHIFT_UP] = self.shift_up_policy
 		self.policies[D_ACCELERATE] = self.accel_policy
 		# self.policies[D_SHIFT_DOWN] = self.shift_down_policy
-		self.policies[D_SUSTAIN] = self.sustain_policy
+		# self.policies[D_SUSTAIN] = self.sustain_policy
 		self.policies[D_BRAKE] = self.brake_policy
 
 	def accel_policy(self, S):
@@ -34,6 +34,7 @@ class sim_dp_nd_template:
 
 		if Sp != None:
 			Sp[G_DECISION] = D_ACCELERATE
+			Sp[G_PARENT] = 0
 
 		return Sp
 
@@ -49,28 +50,7 @@ class sim_dp_nd_template:
 	def shift_down_policy(self, S):
 		return None
 
-	def fill_axes(self):
-		for i in range(self.axes):
-			policy = self.policies[i]
-			S = self.sg.get_element(0)
-			index = [0 for x in range(self.axes)]
-
-			for j in range(1, self.n):
-				index[i] = j
-				iS = self.sg.convert_to_index(index)
-				S = policy(S)
-
-				if S == None:
-					break;
-				else:
-					S[G_ID] = iS
-					S[G_INDEX] = list(index)
-					self.sg.set_element(iS, tuple(S))
-					self.pre_pop.append(S[G_INDEX])
-					# self.done.add(iS)
-
 	def compute_RT(self, S, d):
-		#print("computing rt for ", d, S)
 		if not self.good_to_go(S):
 			return (self.maxint, None)
 		elif S[G_STEP] + 1 > len(self.segments):
@@ -84,7 +64,7 @@ class sim_dp_nd_template:
 		Sp = [0, 
 			0,
 			S[G_STEP] + 1,
-			None,
+			-1,
 			None,
 			self.maxint ,
 			0.0,
@@ -156,24 +136,36 @@ class sim_dp_nd_template:
 		return True
 
 	def find_optimum(self, endStates):
+		for k in self.rk.nodes.keys():
+			if self.rk.getNode(k) != None and heap.GetID(self.rk.getNode(k)) != k:
+				print("uh oh:", k)
+
+		for e in endStates:
+			print(e, self.rk.flatToList(e), heap.GetTime(self.rk.getNode(e)))
+
 		if len(endStates) <= 0:
 			print("did not succeed")
 			exit()
 		min_t = self.maxint
 		min_S = None
 
-		for statePointer in endStates:
+		for s in endStates:
+			statePointer = self.rk.getNode(s)
 			#if statePointer == None:
 			#print("fo:", statePointer)
 			if heap.GetTime(statePointer) < min_t:
 				min_t = heap.GetTime(statePointer)
 				min_S = statePointer
+		#min_S = self.rk.getNode(1931)
+
+		data = nodeToList(min_S)
+		print(data)
 
 		path = []
 		output = np.zeros([self.n, O_MATRIX_COLS])
 		#if min_S == None:
 		#print("foo:", min_S)
-		output[0, :] = np.array([
+		output[self.n - 1, :] = np.array([
 				heap.GetTime(min_S),
 				heap.GetStep(min_S),
 				heap.GetVelocity(min_S),
@@ -191,14 +183,13 @@ class sim_dp_nd_template:
 				0
 			])
 
-		i = self.n - 1
+		i = self.n - 2
 
-		while heap.GetParent(min_S) != None:
-			#print(nodeToList(min_S))
-			min_S = heap.GetParent(min_S)
-			#if min_S == None:
-			#print("fow:", min_S)
-			#print(min_S)
+		while data[4] >= 0:
+			min_S = self.rk.getNode(data[4])
+			print("##########################################")
+			data = nodeToList(min_S)
+			print(data)
 			path.append(heap.GetDecision(min_S))
 
 			output[i, :] = np.array([
@@ -222,6 +213,8 @@ class sim_dp_nd_template:
 			i = i - 1
 
 		print(output[:, O_STATUS])
+		print(output[:, O_VELOCITY])
+		print(output[:, O_CURVATURE])
 		return (path[::-1], output)
 
 	def solve(self, vehicle, segments):
@@ -230,94 +223,57 @@ class sim_dp_nd_template:
 		self.segments = segments
 		self.n = len(segments) + 1
 		self.rk = RelationshipKeeper(self.axes, self.n)
+		print(self.n)
 
 		# get incumbent solution
 		i = sim_pointmass()
 		self.incumbent = i.solve(vehicle, segments)
 		self.max_cost = self.incumbent[-1, O_TIME]
-		#print("max time:", self.max_cost)
-		#print("max int: ", self.maxint)
 
 		# set up base case/start node
 		heap.Init(self.n ** (self.axes - 1))
 		init_state = heap.MakeInitNode()
-		if not init_state:
-			#print("init fuqqed")
-			exit()
-		#print("initialized: ", init_state)
+		init_list = nodeToList(init_state)
 		self.rk.addNode(0, init_state)
 
 		# prepare for loop
 		heapIndex = 0
 		processed = -1		
 		end_states = []
-		axisLeaders = [heap.MakeInitNode() for a in range(self.axes)]
-		for a in axisLeaders:
-			if not a:
-				#print("axis fuqqed")
-				exit()
-			heap.SetParent(a, init_state)
-		#print("AL0: ", axisLeaders)
 
-		for i, leader in enumerate(axisLeaders):
-			if leader != None:
-				listLeader = nodeToList(leader)
-				newNode = self.policies[i](listLeader)
-				#print("newleaders: ", i, newNode)
+		for i in range(self.axes):
+			listLeader = self.policies[i](init_list)
 
-				if newNode == None:
-					axisLeaders[i] = None
-					# heap.KillNode(leader)
-				else:
-					newNode[G_ID] = listLeader[G_ID] + (self.n ** (self.axes - i - 1))
-					newNode[G_PARENT] = leader
-					axisLeaders[i] = listToNode(newNode)
-					self.rk.addNode(newNode[G_ID], axisLeaders[i])
+			if listLeader != None:
+				listLeader[G_ID] = ((self.n + 1) ** (self.axes - i - 1))
+				leader = listToNode(listLeader)
+				heap.SetParent(leader, 0)
 
-					children = self.rk.makeChildren(newNode[G_ID])
-					print(children)
-					for child in children:
-						print(heap.GetID(child))
-						#if child == None:
-						#print("temp:", child)
-						#if axisLeaders[i] == None:
-						#print("temp2:", axisLeaders[i])
-						ret = heap.Insert(child, heapIndex, newNode[G_TIME])
-						if ret > 0:
-							print("HEY LOOK: " + str(ret))
-							print(child, heapIndex, newNode[G_TIME])
-					added = True
-		### AAAAAAAH
+				self.rk.addNode(listLeader[G_ID], leader)
+				children = self.rk.makeChildren(listLeader[G_ID])
+				for child in children:
+					heap.Insert(child, heapIndex, listLeader[G_TIME])
+				added = True
+
 		levels = 0
 		while(added):
 			added = False
-			debugon = False
 			levels += 1
 			print("processed: ", levels, processed, heap.cvar.nodesMade, heap.cvar.workingHeapSize + heap.cvar.reserveHeapSize)
-
-			# if levels == 359:
-			# 	debugon = True
-			# 	pdb.set_trace()
-
-			# move reserved nodes to working heap
-			# heap.SwapHeaps()
-			#print("working: ", heap.cvar.workingHeapSize)
-			#print("reserve: ", heap.cvar.reserveHeapSize)
-			#print("heapInd: ", heapIndex)
+			if levels == 44:
+				pdb.set_trace()
 
 			workingNode = heap.DeleteMin(heapIndex)
-
 			while(workingNode != None):
 				# handy counter
 				processed += 1					
 
 				# constants
 				workingID = heap.GetID(workingNode)
-				#print("working on: ", workingID, workingNode, nodeToList(workingNode))
 				optimalState = None
 				minCost = self.maxint
+				minParent = None
 				parents = self.rk.getParentPointers(workingID)
-				#print("parents: ", parents)
 
 				# find best parent if any
 				for parent in parents:
@@ -332,86 +288,36 @@ class sim_dp_nd_template:
 
 						if newState != None and cost < minCost:
 							minCost = cost
+							minParent = parentPointer
 							optimalState = newState
 
-							optimalState[G_PARENT] = parentPointer
 							optimalState[G_DECISION] = decisionID
+							optimalState[G_PARENT] = parentID
 							optimalState[G_ID] = workingID
 
-				#print("OS: ", optimalState)
 				# assign parent or kill all the nodes
-				if minCost < self.maxint:
-					#print("success: ", minCost)
-					#print("here")
-					
-					heap.FreeNode(workingNode)
-					optimalNode = listToNode(optimalState)
-					self.rk.addNode(workingID, optimalNode)
+				if minCost < self.maxint:					
+					self.rk.addNode(workingID, listToNode(optimalState))
+					if heap.GetParent(self.rk.getNode(workingID)) == None:
+						pdb.set_trace()
 
 					if optimalState[G_STEP] == self.n - 1:
-						end_states.append(optimalNode)
+						end_states.append(workingID)
 					else:
 						children = self.rk.makeChildren(workingID)
 						for child in children:
 							added = True
-							#if child == None:
-							#print("minf:", child)
-							#if workingNode == None:
-							#print("minf2:", workingNode)
-							#print("im okay")
 							heap.Insert(child, abs(heapIndex - 1), minCost)
-							if ret > 0:
-								print("HEY LOOK: " + str(ret))
-								print(child, heapIndex, optimalState[G_TIME])
-							#print("im okay i swear")
 				else:
-					# print("or here", levels, heap.cvar.nodesMade, (heap.cvar.workingHeapSize + heap.cvar.reserveHeapSize))
-					# heap.KillNode(workingNode)
-					pass
+					heap.FreeNode(workingNode)
+					self.rk.nodes[workingID] = None
 
-				#print("could it be... me?")
 				workingNode = heap.DeleteMin(heapIndex)
-				#print("phew")
-
-			# refresh axis leaders
-			# for i, leader in enumerate(axisLeaders):
-			# 	if leader != None:
-			# 		#print("are we about to have a problem?")
-			# 		#print(axisLeaders)
-			# 		listLeader = nodeToList(leader)
-			# 		newNode = self.policies[i](listLeader)
-			# 		#print("newleaders: ", i, newNode)
-
-			# 		if newNode == None:
-			# 			axisLeaders[i] = None
-			# 			# heap.KillNode(leader)
-			# 		else:
-			# 			newNode[G_ID] = listLeader[G_ID] + (self.n ** (self.axes - i - 1))
-			# 			newNode[G_PARENT] = leader
-			# 			axisLeaders[i] = listToNode(newNode)
-			# 			self.rk.addNode(newNode[G_ID], axisLeaders[i])
-
-			# 			children = self.rk.makeChildren(newNode[G_ID])
-			# 			for child in children:
-			# 				#if child == None:
-			# 				#print("ref:", child)
-			# 				#if axisLeaders[i] == None:
-			# 				#print("ref2:", axisLeaders[i])
-			# 				#print("it chill")
-			# 				heap.Insert(child, abs(heapIndex - 1), newNode[G_TIME])
-			# 				if ret > 0:
-			# 					print("HEY LOOK: " + str(ret))
-			# 					print(child, heapIndex, newNode[G_TIME])
-			# 				#print("it so chill")
-			# 			added = True
-			#print("AL: ", axisLeaders)
 
 			heapIndex = abs(heapIndex - 1)
 
-		#print("ES: ", end_states)
 		path, output = self.find_optimum(end_states)
-
-		#print(path)
+		print(path)
 
 		return output
 
@@ -477,11 +383,13 @@ def listToNode(l):
 class RelationshipKeeper:
 	def __init__(self, axes, n):
 		self.axes = axes
-		self.n = n
+		self.n = n + 1
 		self.nodes = {}
 		self.nToThe = [self.n ** i for i in range(self.axes)]
 
 	def addNode(self, num, pointer):
+		if num != heap.GetID(pointer):
+			pdb.set_trace()
 		self.nodes[num] = pointer
 		# print("added ", self.flatToList(num))
 
@@ -503,6 +411,7 @@ class RelationshipKeeper:
 			index.append(int(num % self.n))
 			num = (num - index[-1]) / self.n
 
+		index.reverse()
 		return index
 
 	def listToFlat(self, index) :
@@ -533,20 +442,17 @@ class RelationshipKeeper:
 			if index[i] < self.n - 1:
 				child = list(index)
 				child[i] = index[i] + 1
-				#if 0 not in child:
-				children.append(self.listToFlat(child))
+				c = self.listToFlat(child)
+				if self.getNode(c) == None:
+					children.append(c)
 
 		childPointers = []
+		newStep = heap.GetStep(self.nodes[num]) + 1
 		for child in children:
 			if child not in self.nodes:
 				n = heap.MakeInitNode()
-				#if child == None:
-				#print("c:", n)
-				if not n:
-					#print("child fuqqed")
-					exit()
-				#print("cmade: ", n)
 				heap.SetID(n, child)
+				heap.SetStep(n, newStep)
 				self.addNode(child, n)
 				childPointers.append(n)
 

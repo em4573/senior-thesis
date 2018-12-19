@@ -74,9 +74,8 @@ for i, t in enumerate(tracks[1][0]):
 		s = 0
 		l = 0
 
-tracks = [(track, False, "track name")]
+tracks = [(hook, False, "track name")]
 
-print(len(tracks[0][0]))
 draw_track(tracks[0][0])
 
 results = batcher.batch(tests, vehicle, tracks, model, out[1] != 0)

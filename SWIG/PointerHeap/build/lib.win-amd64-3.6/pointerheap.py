@@ -200,6 +200,10 @@ def KillNode(node):
     return _pointerheap.KillNode(node)
 KillNode = _pointerheap.KillNode
 
+def FreeNode(node):
+    return _pointerheap.FreeNode(node)
+FreeNode = _pointerheap.FreeNode
+
 def Insert(node, level, score):
     return _pointerheap.Insert(node, level, score)
 Insert = _pointerheap.Insert
@@ -228,9 +232,17 @@ def GetStep(node):
     return _pointerheap.GetStep(node)
 GetStep = _pointerheap.GetStep
 
+def SetStep(node, s):
+    return _pointerheap.SetStep(node, s)
+SetStep = _pointerheap.SetStep
+
 def GetDecision(node):
     return _pointerheap.GetDecision(node)
 GetDecision = _pointerheap.GetDecision
+
+def SetDecision(node, d):
+    return _pointerheap.SetDecision(node, d)
+SetDecision = _pointerheap.SetDecision
 
 def GetParent(node):
     return _pointerheap.GetParent(node)
@@ -244,25 +256,49 @@ def GetTime(node):
     return _pointerheap.GetTime(node)
 GetTime = _pointerheap.GetTime
 
+def SetTime(node, d):
+    return _pointerheap.SetTime(node, d)
+SetTime = _pointerheap.SetTime
+
 def GetVelocity(node):
     return _pointerheap.GetVelocity(node)
 GetVelocity = _pointerheap.GetVelocity
+
+def SetVelocity(node, d):
+    return _pointerheap.SetVelocity(node, d)
+SetVelocity = _pointerheap.SetVelocity
 
 def GetGear(node):
     return _pointerheap.GetGear(node)
 GetGear = _pointerheap.GetGear
 
+def SetGear(node, d):
+    return _pointerheap.SetGear(node, d)
+SetGear = _pointerheap.SetGear
+
 def GetDelta(node):
     return _pointerheap.GetDelta(node)
 GetDelta = _pointerheap.GetDelta
+
+def SetDelta(node, d):
+    return _pointerheap.SetDelta(node, d)
+SetDelta = _pointerheap.SetDelta
 
 def GetTimeToShift(node):
     return _pointerheap.GetTimeToShift(node)
 GetTimeToShift = _pointerheap.GetTimeToShift
 
+def SetTimeToShift(node, d):
+    return _pointerheap.SetTimeToShift(node, d)
+SetTimeToShift = _pointerheap.SetTimeToShift
+
 def GetScore(node):
     return _pointerheap.GetScore(node)
 GetScore = _pointerheap.GetScore
+
+def SetScore(node, d):
+    return _pointerheap.SetScore(node, d)
+SetScore = _pointerheap.SetScore
 # This file is compatible with both classic and new-style classes.
 
 cvar = _pointerheap.cvar

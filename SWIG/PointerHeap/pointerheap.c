@@ -16,7 +16,7 @@ typedef struct HeapNode {
     int id;
     int dependents;
     int step;
-    void* parent;
+    int parent;
     int decisionID;
     double time;
     double velocity;
@@ -77,7 +77,7 @@ void Destroy() {
     free(reserveHeap);
 }
 
-HeapNode* MakeNode(int id, int dependents, int step, void* parent, int decisionID, double time, double velocity, int gear, int delta, double timeToShift) {
+HeapNode* MakeNode(int id, int dependents, int step, int parent, int decisionID, double time, double velocity, int gear, int delta, double timeToShift) {
     nodesMade++;
     HeapNode *node = malloc(sizeof(HeapNode));
     
@@ -100,7 +100,7 @@ HeapNode* MakeNode(int id, int dependents, int step, void* parent, int decisionI
 }
 
 HeapNode* MakeInitNode() {
-    return MakeNode(0, 0, 0, 0, 0, 0.0, 0.0, 0, 0, 0.0);
+    return MakeNode(0, 0, 0, -1, 0, 0.0, 0.0, 0, 0, 0.0);
 }
 
 void KillNode(HeapNode* node) {
@@ -236,11 +236,11 @@ void SetDecision(HeapNode* node, int d) {
     node->decisionID = d;
 }
 
-HeapNode* GetParent(HeapNode* node) {
+int GetParent(HeapNode* node) {
     return node->parent;
 }
 
-void SetParent(HeapNode* node, HeapNode* parent) {
+void SetParent(HeapNode* node, int parent) {
     node->parent = parent;
 }
 

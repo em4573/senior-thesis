@@ -2983,9 +2983,8 @@ SWIG_Python_NonDynamicSetAttr(PyObject *obj, PyObject *name, PyObject *value) {
 #define SWIGTYPE_p_HeapNode swig_types[1]
 #define SWIGTYPE_p_char swig_types[2]
 #define SWIGTYPE_p_p_HeapNode swig_types[3]
-#define SWIGTYPE_p_void swig_types[4]
-static swig_type_info *swig_types[6];
-static swig_module_info swig_module = {swig_types, 5, 0, 0, 0, 0};
+static swig_type_info *swig_types[5];
+static swig_module_info swig_module = {swig_types, 4, 0, 0, 0, 0};
 #define SWIG_TypeQuery(name) SWIG_TypeQueryModule(&swig_module, &swig_module, name)
 #define SWIG_MangledTypeQuery(name) SWIG_MangledTypeQueryModule(&swig_module, &swig_module, name)
 
@@ -3031,7 +3030,7 @@ typedef struct HeapNode {
 
     int dependents;
     int step;
-    void* parent;
+    int parent;
     int decisionID;
     double time;
     double velocity;
@@ -3050,7 +3049,7 @@ extern int nodesMade;
 extern void Init(int h);
 extern void SwapHeaps();
 extern void Destroy();
-extern HeapNode*  MakeNode(int id, int dependents, int step, void* parent, int decisionID, double time, double velocity, int gear, int delta, double timeToShift);
+extern HeapNode*  MakeNode(int id, int dependents, int step, int parent, int decisionID, double time, double velocity, int gear, int delta, double timeToShift);
 extern HeapNode* MakeInitNode();
 extern void KillNode(HeapNode* node);
 extern void FreeNode(HeapNode* node);
@@ -3062,15 +3061,23 @@ extern void SetID(HeapNode* node, int id);
 extern int GetDependents(HeapNode* node);
 extern void SetDependents(HeapNode* node, int d);
 extern int GetStep(HeapNode* node);
+extern void SetStep(HeapNode* node, int s);
 extern int GetDecision(HeapNode* node);
-extern HeapNode* GetParent(HeapNode* node);
-extern void SetParent(HeapNode* node, HeapNode* parent);
+extern void SetDecision(HeapNode* node, int d);
+extern int GetParent(HeapNode* node);
+extern void SetParent(HeapNode* node, int parent);
 extern double GetTime(HeapNode* node);
+extern void SetTime(HeapNode* node, double d);
 extern double GetVelocity(HeapNode* node);
+extern void SetVelocity(HeapNode* node, double d);
 extern int GetGear(HeapNode* node);
+extern void SetGear(HeapNode* node, int d);
 extern int GetDelta(HeapNode* node);
+extern void SetDelta (HeapNode* node, int d);
 extern double GetTimeToShift(HeapNode* node);
+extern void SetTimeToShift(HeapNode* node, double d);
 extern int GetScore(HeapNode* node);
+extern void SetScore(HeapNode* node, double d);
 
 
 #include <limits.h>
@@ -3592,10 +3599,11 @@ fail:
 SWIGINTERN PyObject *_wrap_HeapNode_parent_set(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   struct HeapNode *arg1 = (struct HeapNode *) 0 ;
-  void *arg2 = (void *) 0 ;
+  int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  int res2 ;
+  int val2 ;
+  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
@@ -3605,10 +3613,11 @@ SWIGINTERN PyObject *_wrap_HeapNode_parent_set(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "HeapNode_parent_set" "', argument " "1"" of type '" "struct HeapNode *""'"); 
   }
   arg1 = (struct HeapNode *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1,SWIG_as_voidptrptr(&arg2), 0, SWIG_POINTER_DISOWN);
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "HeapNode_parent_set" "', argument " "2"" of type '" "void *""'"); 
-  }
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "HeapNode_parent_set" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
   if (arg1) (arg1)->parent = arg2;
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -3623,7 +3632,7 @@ SWIGINTERN PyObject *_wrap_HeapNode_parent_get(PyObject *SWIGUNUSEDPARM(self), P
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  void *result = 0 ;
+  int result;
   
   if (!PyArg_ParseTuple(args,(char *)"O:HeapNode_parent_get",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
@@ -3631,8 +3640,8 @@ SWIGINTERN PyObject *_wrap_HeapNode_parent_get(PyObject *SWIGUNUSEDPARM(self), P
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "HeapNode_parent_get" "', argument " "1"" of type '" "struct HeapNode *""'"); 
   }
   arg1 = (struct HeapNode *)(argp1);
-  result = (void *) ((arg1)->parent);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_void, 0 |  0 );
+  result = (int) ((arg1)->parent);
+  resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
   return NULL;
@@ -4099,7 +4108,7 @@ SWIGINTERN PyObject *_wrap_MakeNode(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   int arg1 ;
   int arg2 ;
   int arg3 ;
-  void *arg4 = (void *) 0 ;
+  int arg4 ;
   int arg5 ;
   double arg6 ;
   double arg7 ;
@@ -4112,7 +4121,8 @@ SWIGINTERN PyObject *_wrap_MakeNode(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   int ecode2 = 0 ;
   int val3 ;
   int ecode3 = 0 ;
-  int res4 ;
+  int val4 ;
+  int ecode4 = 0 ;
   int val5 ;
   int ecode5 = 0 ;
   double val6 ;
@@ -4153,10 +4163,11 @@ SWIGINTERN PyObject *_wrap_MakeNode(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
     SWIG_exception_fail(SWIG_ArgError(ecode3), "in method '" "MakeNode" "', argument " "3"" of type '" "int""'");
   } 
   arg3 = (int)(val3);
-  res4 = SWIG_ConvertPtr(obj3,SWIG_as_voidptrptr(&arg4), 0, 0);
-  if (!SWIG_IsOK(res4)) {
-    SWIG_exception_fail(SWIG_ArgError(res4), "in method '" "MakeNode" "', argument " "4"" of type '" "void *""'"); 
-  }
+  ecode4 = SWIG_AsVal_int(obj3, &val4);
+  if (!SWIG_IsOK(ecode4)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode4), "in method '" "MakeNode" "', argument " "4"" of type '" "int""'");
+  } 
+  arg4 = (int)(val4);
   ecode5 = SWIG_AsVal_int(obj4, &val5);
   if (!SWIG_IsOK(ecode5)) {
     SWIG_exception_fail(SWIG_ArgError(ecode5), "in method '" "MakeNode" "', argument " "5"" of type '" "int""'");
@@ -4438,6 +4449,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_SetStep(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetStep",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetStep" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetStep" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  SetStep(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_GetDecision(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
@@ -4460,13 +4501,43 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_SetDecision(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetDecision",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetDecision" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetDecision" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  SetDecision(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_GetParent(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
   PyObject * obj0 = 0 ;
-  HeapNode *result = 0 ;
+  int result;
   
   if (!PyArg_ParseTuple(args,(char *)"O:GetParent",&obj0)) SWIG_fail;
   res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
@@ -4474,8 +4545,8 @@ SWIGINTERN PyObject *_wrap_GetParent(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "GetParent" "', argument " "1"" of type '" "HeapNode *""'"); 
   }
   arg1 = (HeapNode *)(argp1);
-  result = (HeapNode *)GetParent(arg1);
-  resultobj = SWIG_NewPointerObj(SWIG_as_voidptr(result), SWIGTYPE_p_HeapNode, 0 |  0 );
+  result = (int)GetParent(arg1);
+  resultobj = SWIG_From_int((int)(result));
   return resultobj;
 fail:
   return NULL;
@@ -4485,11 +4556,11 @@ fail:
 SWIGINTERN PyObject *_wrap_SetParent(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
-  HeapNode *arg2 = (HeapNode *) 0 ;
+  int arg2 ;
   void *argp1 = 0 ;
   int res1 = 0 ;
-  void *argp2 = 0 ;
-  int res2 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
   PyObject * obj0 = 0 ;
   PyObject * obj1 = 0 ;
   
@@ -4499,11 +4570,11 @@ SWIGINTERN PyObject *_wrap_SetParent(PyObject *SWIGUNUSEDPARM(self), PyObject *a
     SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetParent" "', argument " "1"" of type '" "HeapNode *""'"); 
   }
   arg1 = (HeapNode *)(argp1);
-  res2 = SWIG_ConvertPtr(obj1, &argp2,SWIGTYPE_p_HeapNode, 0 |  0 );
-  if (!SWIG_IsOK(res2)) {
-    SWIG_exception_fail(SWIG_ArgError(res2), "in method '" "SetParent" "', argument " "2"" of type '" "HeapNode *""'"); 
-  }
-  arg2 = (HeapNode *)(argp2);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetParent" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
   SetParent(arg1,arg2);
   resultobj = SWIG_Py_Void();
   return resultobj;
@@ -4534,6 +4605,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_SetTime(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetTime",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetTime" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetTime" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = (double)(val2);
+  SetTime(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_GetVelocity(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
@@ -4550,6 +4651,36 @@ SWIGINTERN PyObject *_wrap_GetVelocity(PyObject *SWIGUNUSEDPARM(self), PyObject 
   arg1 = (HeapNode *)(argp1);
   result = (double)GetVelocity(arg1);
   resultobj = SWIG_From_double((double)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SetVelocity(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetVelocity",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetVelocity" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetVelocity" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = (double)(val2);
+  SetVelocity(arg1,arg2);
+  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -4578,6 +4709,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_SetGear(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetGear",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetGear" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetGear" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  SetGear(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_GetDelta(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
@@ -4594,6 +4755,36 @@ SWIGINTERN PyObject *_wrap_GetDelta(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   arg1 = (HeapNode *)(argp1);
   result = (int)GetDelta(arg1);
   resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SetDelta(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  int arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  int val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetDelta",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetDelta" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_int(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetDelta" "', argument " "2"" of type '" "int""'");
+  } 
+  arg2 = (int)(val2);
+  SetDelta(arg1,arg2);
+  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -4622,6 +4813,36 @@ fail:
 }
 
 
+SWIGINTERN PyObject *_wrap_SetTimeToShift(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetTimeToShift",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetTimeToShift" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetTimeToShift" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = (double)(val2);
+  SetTimeToShift(arg1,arg2);
+  resultobj = SWIG_Py_Void();
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
 SWIGINTERN PyObject *_wrap_GetScore(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
   PyObject *resultobj = 0;
   HeapNode *arg1 = (HeapNode *) 0 ;
@@ -4638,6 +4859,36 @@ SWIGINTERN PyObject *_wrap_GetScore(PyObject *SWIGUNUSEDPARM(self), PyObject *ar
   arg1 = (HeapNode *)(argp1);
   result = (int)GetScore(arg1);
   resultobj = SWIG_From_int((int)(result));
+  return resultobj;
+fail:
+  return NULL;
+}
+
+
+SWIGINTERN PyObject *_wrap_SetScore(PyObject *SWIGUNUSEDPARM(self), PyObject *args) {
+  PyObject *resultobj = 0;
+  HeapNode *arg1 = (HeapNode *) 0 ;
+  double arg2 ;
+  void *argp1 = 0 ;
+  int res1 = 0 ;
+  double val2 ;
+  int ecode2 = 0 ;
+  PyObject * obj0 = 0 ;
+  PyObject * obj1 = 0 ;
+  
+  if (!PyArg_ParseTuple(args,(char *)"OO:SetScore",&obj0,&obj1)) SWIG_fail;
+  res1 = SWIG_ConvertPtr(obj0, &argp1,SWIGTYPE_p_HeapNode, 0 |  0 );
+  if (!SWIG_IsOK(res1)) {
+    SWIG_exception_fail(SWIG_ArgError(res1), "in method '" "SetScore" "', argument " "1"" of type '" "HeapNode *""'"); 
+  }
+  arg1 = (HeapNode *)(argp1);
+  ecode2 = SWIG_AsVal_double(obj1, &val2);
+  if (!SWIG_IsOK(ecode2)) {
+    SWIG_exception_fail(SWIG_ArgError(ecode2), "in method '" "SetScore" "', argument " "2"" of type '" "double""'");
+  } 
+  arg2 = (double)(val2);
+  SetScore(arg1,arg2);
+  resultobj = SWIG_Py_Void();
   return resultobj;
 fail:
   return NULL;
@@ -4688,15 +4939,23 @@ static PyMethodDef SwigMethods[] = {
 	 { (char *)"GetDependents", _wrap_GetDependents, METH_VARARGS, NULL},
 	 { (char *)"SetDependents", _wrap_SetDependents, METH_VARARGS, NULL},
 	 { (char *)"GetStep", _wrap_GetStep, METH_VARARGS, NULL},
+	 { (char *)"SetStep", _wrap_SetStep, METH_VARARGS, NULL},
 	 { (char *)"GetDecision", _wrap_GetDecision, METH_VARARGS, NULL},
+	 { (char *)"SetDecision", _wrap_SetDecision, METH_VARARGS, NULL},
 	 { (char *)"GetParent", _wrap_GetParent, METH_VARARGS, NULL},
 	 { (char *)"SetParent", _wrap_SetParent, METH_VARARGS, NULL},
 	 { (char *)"GetTime", _wrap_GetTime, METH_VARARGS, NULL},
+	 { (char *)"SetTime", _wrap_SetTime, METH_VARARGS, NULL},
 	 { (char *)"GetVelocity", _wrap_GetVelocity, METH_VARARGS, NULL},
+	 { (char *)"SetVelocity", _wrap_SetVelocity, METH_VARARGS, NULL},
 	 { (char *)"GetGear", _wrap_GetGear, METH_VARARGS, NULL},
+	 { (char *)"SetGear", _wrap_SetGear, METH_VARARGS, NULL},
 	 { (char *)"GetDelta", _wrap_GetDelta, METH_VARARGS, NULL},
+	 { (char *)"SetDelta", _wrap_SetDelta, METH_VARARGS, NULL},
 	 { (char *)"GetTimeToShift", _wrap_GetTimeToShift, METH_VARARGS, NULL},
+	 { (char *)"SetTimeToShift", _wrap_SetTimeToShift, METH_VARARGS, NULL},
 	 { (char *)"GetScore", _wrap_GetScore, METH_VARARGS, NULL},
+	 { (char *)"SetScore", _wrap_SetScore, METH_VARARGS, NULL},
 	 { NULL, NULL, 0, NULL }
 };
 
@@ -4707,28 +4966,24 @@ static swig_type_info _swigt__p_GearData = {"_p_GearData", "struct GearData *|Ge
 static swig_type_info _swigt__p_HeapNode = {"_p_HeapNode", "struct HeapNode *|HeapNode *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_char = {"_p_char", "char *", 0, 0, (void*)0, 0};
 static swig_type_info _swigt__p_p_HeapNode = {"_p_p_HeapNode", "struct HeapNode **|HeapNode **", 0, 0, (void*)0, 0};
-static swig_type_info _swigt__p_void = {"_p_void", "void *", 0, 0, (void*)0, 0};
 
 static swig_type_info *swig_type_initial[] = {
   &_swigt__p_GearData,
   &_swigt__p_HeapNode,
   &_swigt__p_char,
   &_swigt__p_p_HeapNode,
-  &_swigt__p_void,
 };
 
 static swig_cast_info _swigc__p_GearData[] = {  {&_swigt__p_GearData, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_HeapNode[] = {  {&_swigt__p_HeapNode, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_char[] = {  {&_swigt__p_char, 0, 0, 0},{0, 0, 0, 0}};
 static swig_cast_info _swigc__p_p_HeapNode[] = {  {&_swigt__p_p_HeapNode, 0, 0, 0},{0, 0, 0, 0}};
-static swig_cast_info _swigc__p_void[] = {  {&_swigt__p_void, 0, 0, 0},{0, 0, 0, 0}};
 
 static swig_cast_info *swig_cast_initial[] = {
   _swigc__p_GearData,
   _swigc__p_HeapNode,
   _swigc__p_char,
   _swigc__p_p_HeapNode,
-  _swigc__p_void,
 };
 
 
